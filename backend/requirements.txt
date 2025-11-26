@@ -1,23 +1,27 @@
-# System: ITL411 Pokémon API
-# Module: Pokémon Recommendation System
-# File URL: backend/requirements.txt
-# Purpose: Python dependencies for the Pokémon recommendation system
+# backend/requirements.txt
 
-# Web framework
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
+# Web framework and ASGI server
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+
+# HTTP client (for async requests)
+httpx==0.27.0
 
 # Data processing and machine learning
-pandas==2.1.3
-numpy==1.25.2
-scikit-learn==1.3.2
+pandas==2.2.0
+numpy==1.26.4
+scikit-learn==1.5.0
 
-# Data visualization
-matplotlib==3.8.2
-seaborn==0.13.0
+# API validation and settings management
+pydantic==2.9.0
+pydantic-settings==2.3.0
 
-# HTTP requests
-urllib3==2.1.0
+# Utilities
+python-multipart==0.0.9
 
-# CORS support
-python-multipart==0.0.6
+# Rate limiting
+slowapi==0.1.9
+
+# Caching utility with TTL support for async functions
+asyncache==0.1.1
+cachetools==5.3.2

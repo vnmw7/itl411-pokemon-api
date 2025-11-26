@@ -1,173 +1,109 @@
+# backend/main.py
 """
 System: ITL411 Pokémon API
-Module: Pokémon Recommendation API
+Module: Main Application
 File URL: backend/main.py
-Purpose: FastAPI application for Pokémon recommendation system
+Purpose: FastAPI application initialization, configuration, and lifespan management.
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
-import os
+from contextlib import asynccontextmanager
+import uvicorn
+import logging
 
-from pokemon_recommender import PokemonRecommender
+# Imports for Rate Limiting
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+# Import configuration and services
+from backend.config import settings
+from backend.services.pokeapi_client import pokeapi_client
+from backend.services.recommender_service import recommender_service
+
+logger = logging.getLogger(__name__)
+
+# Initialize Rate Limiter
+limiter = Limiter(key_func=get_remote_address)
+
+# Import router creation function
+from backend.api.v1.routes import create_v1_router
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manages application lifespan events."""
+    # --- Startup ---
+    logger.info("Application starting up...")
+    
+    # Initialize ML model and data index asynchronously
+    recommender_success = await recommender_service.initialize()
+    if not recommender_success:
+        logger.warning("Recommender initialization failed. ML and Search features will be unavailable.")
+            
+    yield
+    
+    # --- Shutdown ---
+    logger.info("Application shutting down...")
+    # Close the HTTP client connection pool
+    await pokeapi_client.close()
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="Pokémon Recommendation API",
-    description="Find similar Pokémon using DBSCAN clustering algorithm",
-    version="1.0.0"
+    title=settings.PROJECT_NAME,
+    description="A modern backend API utilizing PokeAPI and Machine Learning, adhering to 2025 best practices.",
+    version="1.0.0",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    lifespan=lifespan
 )
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],  # Vite default port
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# --- Middleware Configuration ---
 
-# Initialize the recommender system
-recommender = PokemonRecommender(use_local_data=True, eps=1.5, min_samples=3)
+# Rate Limiting Configuration
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Pydantic models for request/response
-class PokemonRecommendationRequest(BaseModel):
-    pokemon_name: str
+# CORS Configuration (Restrictive)
+if settings.BACKEND_CORS_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.BACKEND_CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Content-Type"],
+        max_age=600,
+    )
 
-class PokemonRecommendationResponse(BaseModel):
-    similar_pokemon: Optional[List[Dict[str, Any]]] = None
-    cluster: Optional[int] = None
-    message: Optional[str] = None
-    error: Optional[str] = None
+# --- Include Routers ---
+v1_router = create_v1_router(limiter)
+app.include_router(v1_router, prefix=settings.API_V1_STR)
 
-class PokemonInfo(BaseModel):
-    name: str
-    type1: str
-    type2: str
-    cluster: int
-
-class PokemonListResponse(BaseModel):
-    pokemon: List[PokemonInfo]
-
-class ClusterInfoResponse(BaseModel):
-    cluster_counts: Dict[str, int]
-    total_pokemon: int
-    parameters: Dict[str, float]
-
-class VisualizationResponse(BaseModel):
-    image: str
-    error: Optional[str] = None
-
-# Startup event to initialize the recommender
-@app.on_event("startup")
-async def startup_event():
-    """Initialize the recommender system on startup."""
-    success = recommender.initialize()
-    if not success:
-        raise RuntimeError("Failed to initialize the Pokémon recommender system")
-
-# API Endpoints
-@app.get("/")
+@app.get("/", tags=["System"])
 async def root():
-    """Root endpoint with API information."""
+    return {"message": f"Welcome to {settings.PROJECT_NAME} v1.0.0. Access documentation at /docs."}
+
+@app.get("/health", tags=["System"])
+async def health_check():
+    try:
+        # Test PokeAPI connectivity
+        await pokeapi_client.fetch_data(f"{settings.POKEAPI_BASE_URL}pokemon/1")
+        pokeapi_status = "connected"
+    except:
+        pokeapi_status = "unreachable"
+    
+    # Get cache information
+    cache_info = getattr(pokeapi_client.fetch_data, 'cache_info', lambda: {"hits": 0, "misses": 0})()
+    
     return {
-        "message": "Pokémon Recommendation API",
-        "description": "Find similar Pokémon using DBSCAN clustering algorithm",
-        "version": "1.0.0",
-        "endpoints": {
-            "recommendations": "/recommend/{pokemon_name}",
-            "all_pokemon": "/pokemon",
-            "cluster_info": "/clusters",
-            "visualization": "/visualization",
-            "health": "/health"
-        }
+        "status": "healthy" if recommender_service.initialized else "degraded",
+        "ml_service": "initialized" if recommender_service.initialized else "unavailable",
+        "pokeapi_connectivity": pokeapi_status,
+        "cache_stats": cache_info,
+        "dataset_size": len(recommender_service.df) if recommender_service.df is not None else 0
     }
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    return {"status": "healthy", "recommender_initialized": recommender.df is not None}
-
-@app.get("/recommend/{pokemon_name}", response_model=PokemonRecommendationResponse)
-async def get_recommendations(pokemon_name: str):
-    """Get Pokémon recommendations for a given Pokémon name."""
-    try:
-        result = recommender.get_recommendations(pokemon_name)
-        
-        if "error" in result:
-            raise HTTPException(status_code=404, detail=result["error"])
-        
-        if "message" in result:
-            return PokemonRecommendationResponse(message=result["message"])
-        
-        return PokemonRecommendationResponse(
-            similar_pokemon=result["similar_pokemon"],
-            cluster=result["cluster"]
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/recommend", response_model=PokemonRecommendationResponse)
-async def get_recommendations_post(request: PokemonRecommendationRequest):
-    """Get Pokémon recommendations using POST method."""
-    return await get_recommendations(request.pokemon_name)
-
-@app.get("/pokemon", response_model=PokemonListResponse)
-async def get_all_pokemon():
-    """Get a list of all Pokémon in the dataset."""
-    try:
-        pokemon_list = recommender.get_all_pokemon()
-        if "error" in pokemon_list:
-            raise HTTPException(status_code=500, detail=pokemon_list["error"])
-        
-        return PokemonListResponse(pokemon=pokemon_list)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/clusters", response_model=ClusterInfoResponse)
-async def get_cluster_info():
-    """Get information about the clusters."""
-    try:
-        cluster_info = recommender.get_cluster_info()
-        if "error" in cluster_info:
-            raise HTTPException(status_code=500, detail=cluster_info["error"])
-        
-        return ClusterInfoResponse(**cluster_info)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/visualization", response_model=VisualizationResponse)
-async def get_visualization():
-    """Get a visualization of the clusters."""
-    try:
-        image_data = recommender.get_visualization()
-        if "error" in image_data:
-            raise HTTPException(status_code=500, detail=image_data["error"])
-        
-        return VisualizationResponse(image=image_data)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/pokemon/search/{search_term}")
-async def search_pokemon(search_term: str):
-    """Search for Pokémon by name (partial match)."""
-    try:
-        if recommender.df is None:
-            raise HTTPException(status_code=500, detail="Recommender system not initialized")
-        
-        # Case-insensitive partial search
-        search_term = search_term.lower()
-        matching_pokemon = recommender.df[
-            recommender.df['name'].str.lower().str.contains(search_term)
-        ][['name', 'type1', 'type2', 'cluster']].to_dict('records')
-        
-        return {"results": matching_pokemon}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # For running the application directly (e.g., for debugging)
+    logger.info("Starting Uvicorn server on http://127.0.0.1:8000")
+    # Use reload=False because initialization takes a long time
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=False)
