@@ -1,24 +1,46 @@
-import './style.css'
-import javascriptLogo from './javascript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.js'
+// src/main.js
+import './style.css';
+import { initTopSection } from './sections/member1/top-section.js';
+import { initBottomSection } from './sections/member2/bottom-section.js';
+import { initSidebar } from './sections/member3/sidebar.js';
 
+//Main layout structure
 document.querySelector('#app').innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-      <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
-    </a>
-    <h1>Hello Vite!</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite logo to learn more
-    </p>
-  </div>
-`
+  <div id="layout">
+    <!-- Left Column (60% width) -->
+    <div class="left-column">
+      <div class="card" id="top-card">
+        <div class="card-header">
+          <h2 class="card-title">Isaiah</h2>
+          
+        </div>
+        <div id="top-section-content" class="card-content"></div>
+      </div>
 
-setupCounter(document.querySelector('#counter'))
+      <div class="card" id="bottom-card">
+        <div class="card-header">
+          <h2 class="card-title">Gerome</h2>
+        
+        </div>
+        <div id="bottom-section-content" class="card-content"></div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar (40% width) -->
+    <div class="right-column">
+      <div class="card" id="sidebar-card">
+        <div class="card-header">
+          <h2 class="card-title">Nicole</h2>
+     
+        </div>
+        <div id="sidebar-content" class="card-content"></div>
+      </div>
+    </div>
+  </div>
+`;
+
+document.addEventListener('DOMContentLoaded', () => {
+  initTopSection();
+  initBottomSection();
+  initSidebar();
+});
