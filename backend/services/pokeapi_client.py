@@ -11,15 +11,6 @@ import asyncio
 from fastapi import HTTPException
 from typing import List, Dict, Optional, Any
 import logging
-import sys
-import os
-
-# Get the directory containing this script
-current_dir = os.path.dirname(os.path.abspath(__file__))
-# Get the parent directory (project root)
-parent_dir = os.path.dirname(current_dir)
-
-sys.path.insert(0, parent_dir)
 
 from ..config import settings
 from ..api.models import PokemonSummary, PokemonDetail, EvolutionNode
