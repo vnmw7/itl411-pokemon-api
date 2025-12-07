@@ -12,9 +12,9 @@ from fastapi import HTTPException
 from typing import List, Dict, Optional, Any
 import logging
 
-from ..config import settings
-from ..api.models import PokemonSummary, PokemonDetail, EvolutionNode
-from ..utils.cache import async_ttl_cache
+from backend.config import settings
+from backend.api.models import PokemonSummary, PokemonDetail, EvolutionNode
+from backend.utils.cache import async_ttl_cache
 
 logger = logging.getLogger(__name__)
 

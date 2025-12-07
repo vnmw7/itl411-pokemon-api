@@ -6,11 +6,14 @@ File URL: backend/main.py
 Purpose: FastAPI application initialization, configuration, and lifespan management.
 """
 
+import logging
+import sys
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-import uvicorn
-import logging
 
 # Imports for Rate Limiting
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -18,10 +21,14 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 # Import configuration and services
-from config import settings
-from services.pokeapi_client import pokeapi_client
-from services.recommender_service import recommender_service
-from api.v1.routes import create_v1_router
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from backend.config import settings
+from backend.services.pokeapi_client import pokeapi_client
+from backend.services.recommender_service import recommender_service
+from backend.api.v1.routes import create_v1_router
 
 logger = logging.getLogger(__name__)
 
@@ -105,6 +112,6 @@ async def health_check():
 
 if __name__ == "__main__":
     # For running the application directly (e.g., for debugging)
-    logger.info("Starting Uvicorn server on http://127.0.0.1:8000")
+    logger.info("Starting Uvicorn server on http://127.0.0.1:8010")
     # Use reload=False because initialization takes a long time
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=False)
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=8010, reload=False)
