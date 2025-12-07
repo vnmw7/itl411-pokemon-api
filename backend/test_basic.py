@@ -10,12 +10,17 @@ import asyncio
 import sys
 import os
 
-# Add the backend directory to the Python path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Get the directory containing this script
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Get the parent directory (project root)
+parent_dir = os.path.dirname(current_dir)
 
-from config import settings
-from services.pokeapi_client import pokeapi_client
-from services.recommender_service import recommender_service
+sys.path.insert(0, parent_dir)
+
+# Add # noqa: E402 to these lines
+from backend.config import settings  # noqa: E402
+from backend.services.pokeapi_client import pokeapi_client  # noqa: E402
+from backend.services.recommender_service import recommender_service  # noqa: E402
 
 async def test_basic_functionality():
     """Test basic functionality of the new implementation."""
@@ -25,7 +30,7 @@ async def test_basic_functionality():
         # Test 1: Basic PokeAPI client functionality
         print("\n1. Testing PokeAPI client...")
         data = await pokeapi_client.fetch_data(f"{settings.POKEAPI_BASE_URL}pokemon/1")
-        print(f"   ✓ Successfully fetched Bulbasaur: {data['name']}")
+        print(f"   OK Successfully fetched Bulbasaur: {data['name']}")
         
         # Test 2: Recommender service initialization (limited dataset for quick test)
         print("\n2. Testing recommender service initialization...")
@@ -35,20 +40,20 @@ async def test_basic_functionality():
         
         success = await recommender_service.initialize()
         if success:
-            print(f"   ✓ Successfully initialized with {len(recommender_service.df)} Pokémon")
+            print(f"   OK Successfully initialized with {len(recommender_service.df)} Pokémon")
         else:
-            print("   ✗ Failed to initialize recommender service")
+            print("   X Failed to initialize recommender service")
             return False
         
         # Test 3: Search functionality
         print("\n3. Testing search functionality...")
         results = recommender_service.search_by_name("bulb")
-        print(f"   ✓ Search for 'bulb' returned: {results}")
+        print(f"   OK Search for 'bulb' returned: {results}")
         
         # Test 4: Recommendation functionality with distance ordering
         print("\n4. Testing recommendation functionality with distance ordering...")
         recommendations = recommender_service.get_recommendations("bulbasaur", 3)
-        print(f"   ✓ Recommendations for Bulbasaur: {recommendations}")
+        print(f"   OK Recommendations for Bulbasaur: {recommendations}")
         
         # Test 5: Enhanced health check
         print("\n5. Testing enhanced health check...")
@@ -57,16 +62,16 @@ async def test_basic_functionality():
         client = TestClient(app)
         health_response = client.get("/health")
         health_data = health_response.json()
-        print(f"   ✓ Enhanced health check: {health_data}")
+        print(f"   OK Enhanced health check: {health_data}")
         
         # Restore original limit
         recommender_service.limit = original_limit
         
-        print("\n✅ All tests passed! Implementation is working correctly.")
+        print("\nAll tests passed! Implementation is working correctly.")
         return True
         
     except Exception as e:
-        print(f"\n❌ Test failed with error: {e}")
+        print(f"\nTest failed with error: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -83,13 +88,13 @@ async def main():
     await pokeapi_client.close()
     
     if success:
-        print("\n🎉 Implementation is ready for use!")
+        print("\nImplementation is ready for use!")
         print("\nTo start the server, run:")
         print("   uvicorn backend.main:app --host 0.0.0.0 --port 8000")
         print("\nAPI Documentation will be available at:")
         print("   http://127.0.0.1:8000/docs")
     else:
-        print("\n❌ Implementation needs fixes before use.")
+        print("\nImplementation needs fixes before use.")
     
     return success
 

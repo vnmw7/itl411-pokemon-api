@@ -6,7 +6,7 @@ File URL: backend/main.py
 Purpose: FastAPI application initialization, configuration, and lifespan management.
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import uvicorn
@@ -18,17 +18,15 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 # Import configuration and services
-from backend.config import settings
-from backend.services.pokeapi_client import pokeapi_client
-from backend.services.recommender_service import recommender_service
+from config import settings
+from services.pokeapi_client import pokeapi_client
+from services.recommender_service import recommender_service
+from api.v1.routes import create_v1_router
 
 logger = logging.getLogger(__name__)
 
 # Initialize Rate Limiter
 limiter = Limiter(key_func=get_remote_address)
-
-# Import router creation function
-from backend.api.v1.routes import create_v1_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -88,8 +86,11 @@ async def health_check():
         # Test PokeAPI connectivity
         await pokeapi_client.fetch_data(f"{settings.POKEAPI_BASE_URL}pokemon/1")
         pokeapi_status = "connected"
-    except:
+    except HTTPException:
         pokeapi_status = "unreachable"
+    except Exception as error:
+        logger.warning("Unexpected error during PokeAPI health check: %s", error)
+        pokeapi_status = "unknown"
     
     # Get cache information
     cache_info = getattr(pokeapi_client.fetch_data, 'cache_info', lambda: {"hits": 0, "misses": 0})()
