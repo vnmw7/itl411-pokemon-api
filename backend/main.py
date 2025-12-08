@@ -41,10 +41,10 @@ async def lifespan(app: FastAPI):
     # --- Startup ---
     logger.info("Application starting up...")
     
-    # Initialize ML model and data index asynchronously
-    recommender_success = await recommender_service.initialize()
-    if not recommender_success:
-        logger.warning("Recommender initialization failed. ML and Search features will be unavailable.")
+    # Start initialization in background, don't wait for it to complete
+    # This allows the app to respond to health checks immediately
+    import asyncio
+    asyncio.create_task(recommender_service.initialize())
             
     yield
     
@@ -89,29 +89,17 @@ async def root():
 
 @app.get("/health", tags=["System"])
 async def health_check():
-    try:
-        # Test PokeAPI connectivity
-        await pokeapi_client.fetch_data(f"{settings.POKEAPI_BASE_URL}pokemon/1")
-        pokeapi_status = "connected"
-    except HTTPException:
-        pokeapi_status = "unreachable"
-    except Exception as error:
-        logger.warning("Unexpected error during PokeAPI health check: %s", error)
-        pokeapi_status = "unknown"
-    
-    # Get cache information
-    cache_info = getattr(pokeapi_client.fetch_data, 'cache_info', lambda: {"hits": 0, "misses": 0})()
-    
+    # Quick health check that doesn't wait for initialization
+    # This ensures the app responds immediately to DigitalOcean health checks
     return {
-        "status": "healthy" if recommender_service.initialized else "degraded",
-        "ml_service": "initialized" if recommender_service.initialized else "unavailable",
-        "pokeapi_connectivity": pokeapi_status,
-        "cache_stats": cache_info,
-        "dataset_size": len(recommender_service.df) if recommender_service.df is not None else 0
+        "status": "healthy",
+        "ml_service": "initialized" if recommender_service.initialized else "initializing"
     }
 
 if __name__ == "__main__":
-    # For running the application directly (e.g., for debugging)
-    logger.info("Starting Uvicorn server on http://127.0.0.1:8010")
+    import os
+    # Use PORT environment variable if available (required for DigitalOcean), default to 8010 for local development
+    port = int(os.environ.get("PORT", 8010))
+    logger.info(f"Starting Uvicorn server on http://0.0.0.0:{port}")
     # Use reload=False because initialization takes a long time
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8010, reload=False)
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=port, reload=False)
