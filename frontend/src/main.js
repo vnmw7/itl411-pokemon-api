@@ -1,46 +1,38 @@
 // src/main.js
 import './style.css';
-import { initTopSection } from './sections/member1/top-section.js';
-import { initBottomSection } from './sections/member2/bottom-section.js';
-import { initSidebar } from './sections/member3/sidebar.js';
+import { initSearchSection } from './sections/isaiah/search-bar.js';
+import { initPokemonGrid } from './sections/gerome/pokemon-grid.js';
+import { initPokemonOverview } from './sections/nicole/pokemon-overview.js';
+import { initPokemonStats } from './sections/kia/stats-evolution.js';
 
-//Main layout structure
+// 1. Set up the Layout HTML
 document.querySelector('#app').innerHTML = `
-  <div id="layout">
-    <!-- Left Column (60% width) -->
-    <div class="left-column">
-      <div class="card" id="top-card">
-        <div class="card-header">
-          <h2 class="card-title">Isaiah</h2>
-          
-        </div>
-        <div id="top-section-content" class="card-content"></div>
-      </div>
+  <header style="padding: 20px 40px; background: white; display: flex; align-items: center; gap: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 10;">
+    <div style="width: 40px; height: 40px; background: #EA5D60; border-radius: 50%;"></div>
+    <h2 style="font-weight: 700; font-size: 1.5rem; color: #2B2F42;">ITL411 <span style="font-weight: 400;">PokéDex</span></h2>
+  </header>
 
-      <div class="card" id="bottom-card">
-        <div class="card-header">
-          <h2 class="card-title">Gerome</h2>
-        
-        </div>
-        <div id="bottom-section-content" class="card-content"></div>
-      </div>
+  <div id="main-container">
+    
+    <div class="content-area">
+      <div id="isaiah-search-container"></div>
+      
+      <div id="gerome-grid-container"></div>
     </div>
 
-    <!-- Right Sidebar (40% width) -->
-    <div class="right-column">
-      <div class="card" id="sidebar-card">
-        <div class="card-header">
-          <h2 class="card-title">Nicole</h2>
-     
-        </div>
-        <div id="sidebar-content" class="card-content"></div>
-      </div>
+    <div class="sidebar-area">
+      <div id="nicole-overview-container"></div>
+      
+      <div id="kia-stats-container"></div>
     </div>
+
   </div>
 `;
 
+// 2. Initialize Member Components
 document.addEventListener('DOMContentLoaded', () => {
-  initTopSection();
-  initBottomSection();
-  initSidebar();
+  initSearchSection(document.getElementById('isaiah-search-container'));
+  initPokemonGrid(document.getElementById('gerome-grid-container'));
+  initPokemonOverview(document.getElementById('nicole-overview-container'));
+  initPokemonStats(document.getElementById('kia-stats-container'));
 });
