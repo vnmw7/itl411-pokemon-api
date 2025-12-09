@@ -35,6 +35,9 @@ logger = logging.getLogger(__name__)
 # Initialize Rate Limiter
 limiter = Limiter(key_func=get_remote_address)
 
+CORS_MAX_AGE_SECONDS = 600
+DEFAULT_CORS_ORIGINS = ["*"]
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manages application lifespan events."""
@@ -68,16 +71,16 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS Configuration (Restrictive)
-if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.BACKEND_CORS_ORIGINS,
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["Content-Type"],
-        max_age=600,
-    )
+# CORS Configuration (Allowlist with wildcard fallback)
+cors_origins = settings.BACKEND_CORS_ORIGINS or DEFAULT_CORS_ORIGINS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    max_age=CORS_MAX_AGE_SECONDS,
+)
 
 # --- Include Routers ---
 v1_router = create_v1_router(limiter)
