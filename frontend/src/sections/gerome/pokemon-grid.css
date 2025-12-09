@@ -1,0 +1,47 @@
+/* frontend/src/sections/gerome/pokemon-grid.css */
+.pokemon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 20px;
+  padding-bottom: 20px;
+}
+
+.poke-card {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.poke-card:hover, .poke-card:focus {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  outline: 2px solid var(--primary);
+}
+
+.poke-card img {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.poke-card h3 {
+  margin: 10px 0;
+  font-size: 1.1rem;
+  text-transform: capitalize;
+}
+
+.type-badge {
+  background: #f4f4f4;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: capitalize;
+  display: inline-block;
+}

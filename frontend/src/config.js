@@ -5,37 +5,35 @@
  * Purpose: Centralized configuration for API endpoints and application settings
  */
 
-// API Configuration
-export const API_BASE_URL = 'https://lionfish-app-ff29q.ondigitalocean.app';
+export const API_BASE_URL = 'https://lionfish-app-ff29q.ondigitalocean.app/api/v1';
 
-// Application Constants
-export const DEBOUNCE_DELAY_MS = 300;
+export const CONFIG = {
+  DEBOUNCE_MS: 300,
+  DEFAULT_LIMIT: 50,
+  ANIMATION_SPEED: 300,
+  GRID_MIN_WIDTH: 140
+};
 
-// Feature Flags
+export const API_ENDPOINTS = {
+  pokemon: `${API_BASE_URL}/pokemon`,
+  pokemonSearch: `${API_BASE_URL}/pokemon/search`,
+};
+
+// Keep existing exports for backward compatibility
+export const DEBOUNCE_DELAY_MS = CONFIG.DEBOUNCE_MS;
 export const FEATURE_FLAGS = {
   enableEvolutionChain: true,
   enableRecommendations: true,
   enableTypeFiltering: true
 };
 
-// API Endpoints
-export const API_ENDPOINTS = {
-  pokemon: `${API_BASE_URL}/api/v1/pokemon`,
-  pokemonSearch: `${API_BASE_URL}/api/v1/pokemon/search`,
-  pokemonDetails: (id) => `${API_BASE_URL}/api/v1/pokemon/${id}`,
-  pokemonEvolution: (id) => `${API_BASE_URL}/api/v1/pokemon/${id}/evolution`,
-  recommendations: (name) => `${API_BASE_URL}/api/v1/recommend/${name}`
-};
-
-// Pagination Settings
 export const PAGINATION = {
-  defaultLimit: 20,
+  defaultLimit: CONFIG.DEFAULT_LIMIT,
   maxLimit: 100
 };
 
-// UI Settings
 export const UI_CONFIG = {
-  gridMinCardWidth: 140,
-  animationDuration: 300,
+  gridMinCardWidth: CONFIG.GRID_MIN_WIDTH,
+  animationDuration: CONFIG.ANIMATION_SPEED,
   loadingDelay: 500
 };
