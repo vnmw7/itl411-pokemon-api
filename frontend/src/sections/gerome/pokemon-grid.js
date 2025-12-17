@@ -69,11 +69,13 @@ export function initPokemonGrid(element) {
 
     // Event Delegation
     const handleSelect = (id) => {
-      const selected = allPokemon.find(p => p.id == id);
-      if (selected) {
-        document.dispatchEvent(new CustomEvent('pokemon-selected', { detail: selected }));
-      }
-    };
+  const selected = allPokemon.find(p => p.id == id);
+  if (selected) {
+    console.log('[Grid] pokemon-selected', selected.name, selected.id);
+    document.dispatchEvent(new CustomEvent('pokemon-selected', { detail: selected }));
+  }
+};
+
 
     element.querySelectorAll('.poke-card').forEach(card => {
       card.addEventListener('click', () => handleSelect(card.dataset.id));

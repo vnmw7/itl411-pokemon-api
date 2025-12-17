@@ -13,26 +13,25 @@ document.querySelector('#app').innerHTML = `
   </header>
 
   <div id="main-container">
-    
     <div class="content-area">
       <div id="isaiah-search-container"></div>
-      
       <div id="gerome-grid-container"></div>
     </div>
 
     <div class="sidebar-area">
       <div id="nicole-overview-container"></div>
-      
       <div id="kia-stats-container"></div>
     </div>
-
   </div>
 `;
 
-// 2. Initialize Member Components
-document.addEventListener('DOMContentLoaded', () => {
-  initSearchSection(document.getElementById('isaiah-search-container'));
-  initPokemonGrid(document.getElementById('gerome-grid-container'));
-  initPokemonOverview(document.getElementById('nicole-overview-container'));
-  initPokemonStats(document.getElementById('kia-stats-container'));
-});
+// 2. Initialize Member Components (no need for DOMContentLoaded here)
+const searchEl   = document.getElementById('isaiah-search-container');
+const gridEl     = document.getElementById('gerome-grid-container');
+const overviewEl = document.getElementById('nicole-overview-container');
+const statsEl    = document.getElementById('kia-stats-container');
+
+if (searchEl)   initSearchSection(searchEl);
+if (gridEl)     initPokemonGrid(gridEl);
+if (overviewEl) initPokemonOverview(overviewEl);
+if (statsEl)    initPokemonStats(statsEl);
