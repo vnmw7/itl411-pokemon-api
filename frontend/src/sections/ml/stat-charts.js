@@ -317,69 +317,74 @@ function createScatterChart(data, selectedPokemonName = null, recommendedNames =
   // Update cluster info display
   updateClusterInfo(data, selectedPoint);
 
-  // Group points by cluster
-  const clusterGroups = groupPointsByCluster(points);
-  const clusterKeys = Object.keys(clusterGroups).sort((a, b) => {
-    // Put outliers (-1) last
-    if (a === '-1') return 1;
-    if (b === '-1') return -1;
-    return parseInt(a) - parseInt(b);
-  });
+  // Split points into three groups: Selected (Yellow), Recommended (Green), Others (Grey)
+  const selectedPoints = [];
+  const recPoints = [];
+  const otherPoints = [];
 
-  // Build datasets - one per cluster
-  const datasets = clusterKeys.map(clusterKey => {
-    const clusterNum = parseInt(clusterKey);
-    const clusterPoints = clusterGroups[clusterKey];
-    const baseColor = getClusterColor(clusterNum);
+  points.forEach(p => {
+    const isSelected = selectedPoint && p.id === selectedPoint.id;
+    const isRecommended = recommendedSet.has(p.name.toLowerCase());
 
-    return {
-      label: clusterNum === -1 ? 'Outliers' : `Cluster ${clusterNum}`,
-      data: clusterPoints.map(p => ({
-        x: p.x,
-        y: p.y,
-        name: p.name,
-        id: p.id,
-        cluster: p.cluster,
-        stats: p.stats,
-        offensive_power: p.offensive_power,
-        defensive_power: p.defensive_power,
-        isSelected: selectedPoint && p.id === selectedPoint.id,
-        isRecommended: recommendedSet.has(p.name.toLowerCase())
-      })),
-      backgroundColor: clusterPoints.map(p => {
-        const isSelected = selectedPoint && p.id === selectedPoint.id;
-        const isRecommended = recommendedSet.has(p.name.toLowerCase());
-        if (isSelected) return HIGHLIGHT_COLOR;
-        if (isRecommended) return '#10B981'; // Green for recommended
-        if (selectedCluster !== undefined) {
-          return p.cluster === selectedCluster
-            ? baseColor
-            : hexToRgba(baseColor, 0.2);
-        }
-        return baseColor;
-      }),
-      pointRadius: clusterPoints.map(p => {
-        const isSelected = selectedPoint && p.id === selectedPoint.id;
-        const isRecommended = recommendedSet.has(p.name.toLowerCase());
-        if (isSelected) return 10;
-        if (isRecommended) return 8;
-        return 5;
-      }),
-      pointHoverRadius: 8,
-      borderColor: clusterPoints.map(p => {
-        const isSelected = selectedPoint && p.id === selectedPoint.id;
-        const isRecommended = recommendedSet.has(p.name.toLowerCase());
-        if (isSelected) return '#000';
-        if (isRecommended) return '#059669';
-        return 'transparent';
-      }),
-      borderWidth: clusterPoints.map(p => {
-        const isSelected = selectedPoint && p.id === selectedPoint.id;
-        const isRecommended = recommendedSet.has(p.name.toLowerCase());
-        return (isSelected || isRecommended) ? 2 : 0;
-      })
+    const pointData = {
+      x: p.x,
+      y: p.y,
+      name: p.name,
+      id: p.id,
+      cluster: p.cluster,
+      stats: p.stats,
+      offensive_power: p.offensive_power,
+      defensive_power: p.defensive_power,
+      isSelected,
+      isRecommended
     };
+
+    if (isSelected) {
+      selectedPoints.push(pointData);
+    } else if (isRecommended) {
+      recPoints.push(pointData);
+    } else {
+      otherPoints.push(pointData);
+    }
   });
+
+  const datasets = [];
+
+  // 1. Background / Others (Grey)
+  datasets.push({
+    label: 'Others',
+    data: otherPoints,
+    backgroundColor: '#E5E7EB',
+    pointRadius: 5,
+    pointHoverRadius: 7,
+    order: 3
+  });
+
+  // 2. Recommended (Green)
+  if (recPoints.length > 0) {
+    datasets.push({
+      label: 'Similar Pokémon',
+      data: recPoints,
+      backgroundColor: '#10B981', // Green
+      pointRadius: 8,
+      pointHoverRadius: 10,
+      order: 2
+    });
+  }
+
+  // 3. Selected (Yellow)
+  if (selectedPoints.length > 0) {
+    datasets.push({
+      label: 'Selected',
+      data: selectedPoints,
+      backgroundColor: '#FBBF24', // Yellow
+      borderColor: '#000',
+      borderWidth: 2,
+      pointRadius: 12,
+      pointHoverRadius: 12,
+      order: 1 // Draw on top
+    });
+  }
 
   // Build connections from selected pokemon to recommendations
   const connections = [];
@@ -408,7 +413,11 @@ function createScatterChart(data, selectedPokemonName = null, recommendedNames =
             usePointStyle: true,
             boxWidth: 8,
             padding: 8,
-            font: { size: 10 }
+            font: { size: 10 },
+            filter: (legendItem, chartData) => {
+              // Only show "Similar Pokémon" in the legend
+              return legendItem.text === 'Similar Pokémon';
+            }
           }
         },
         tooltip: {
