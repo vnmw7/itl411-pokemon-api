@@ -110,14 +110,33 @@ def create_v1_router(limiter: Limiter) -> APIRouter:
             status_code = 404 if "not found" in result["error"] else 500
             raise HTTPException(status_code=status_code, detail=result["error"])
 
-        recommended_names = result.get("recommendations", [])
+        recommended_objects = result.get("recommendations", [])
         
-        if not recommended_names:
+        if not recommended_objects:
             return StandardResponse(data=result, message=result.get("message"))
 
         # 2. Enhance recommendations with details from PokeAPI
-        enhanced_details = await client.get_details_by_names(recommended_names)
-        result["recommendations"] = enhanced_details
+        # Extract names from the recommendation objects for the API call
+        names_to_fetch = [r["name"] for r in recommended_objects]
+        
+        # Fetch details (images, types)
+        api_details_list = await client.get_details_by_names(names_to_fetch)
+        
+        # Create a lookup map for faster merging
+        api_details_map = {d.name.lower(): d for d in api_details_list}
+
+        # Merge API data back into the recommendation objects to preserve ML stats (similarity, etc.)
+        for rec in recommended_objects:
+            name_key = rec["name"].lower()
+            if name_key in api_details_map:
+                detail = api_details_map[name_key]
+                rec["image"] = detail.image
+                rec["types"] = detail.types
+                # Ensure ID matches API (optional but good for consistency)
+                if detail.id:
+                    rec["id"] = detail.id
+
+        result["recommendations"] = recommended_objects
 
         return StandardResponse(data=result)
 
