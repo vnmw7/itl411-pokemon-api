@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "https://itl411-pokemon-api.vercel.app",
+        "https://www.pokedex.systems"
     ]
 
     # ML Model parameters
