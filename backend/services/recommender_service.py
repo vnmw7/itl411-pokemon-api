@@ -11,6 +11,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import DBSCAN
 from sklearn.impute import SimpleImputer
 from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.decomposition import PCA
 import logging
 import httpx
 import asyncio
@@ -28,6 +29,8 @@ class RecommenderService:
         self.model = DBSCAN(eps=self.eps, min_samples=self.min_samples)
         self.initialized = False
         self.features = ['hp', 'attack', 'defense', 'special-attack', 'special-defense', 'speed']
+        self.pca = None
+        self.pca_coords = None
 
     async def _fetch_pokemon_details(self, client, url):
         """Helper to fetch details for a single Pokémon."""
@@ -89,6 +92,13 @@ class RecommenderService:
         
         self.df['cluster'] = self.model.labels_
 
+        # 6. Compute PCA for 2D cluster visualization
+        logger.info("Computing PCA for cluster visualization...")
+        self.pca = PCA(n_components=2)
+        self.pca_coords = self.pca.fit_transform(X_scaled)
+        self.df['pca_x'] = self.pca_coords[:, 0]
+        self.df['pca_y'] = self.pca_coords[:, 1]
+
         self.initialized = True
         logger.info(f"Initialization complete. Clustered {len(self.df)} Pokémon.")
         return True
@@ -141,11 +151,40 @@ class RecommenderService:
             recommendations = recommendations.drop('distance', axis=1)
 
         recommended_names = recommendations['name'].tolist()
-        
+
         return {
             "input_pokemon": pokemon_name,
             "cluster_id": int(cluster),
             "recommendations": recommended_names
+        }
+
+    def get_cluster_visualization(self):
+        """Returns all Pokemon with 2D PCA coordinates and cluster labels for visualization."""
+        if not self.initialized:
+            return {"error": "Recommender not initialized."}
+
+        # Build lightweight response with only visualization-needed fields
+        points = []
+        for _, row in self.df.iterrows():
+            points.append({
+                "id": int(row['id']),
+                "name": row['name'],
+                "x": float(row['pca_x']),
+                "y": float(row['pca_y']),
+                "cluster": int(row['cluster'])
+            })
+
+        # Compute cluster metadata
+        cluster_counts = self.df['cluster'].value_counts().to_dict()
+
+        return {
+            "points": points,
+            "cluster_info": {
+                "counts": {str(k): v for k, v in cluster_counts.items()},
+                "total_clusters": len([c for c in cluster_counts.keys() if c != -1]),
+                "outlier_count": cluster_counts.get(-1, 0)
+            },
+            "pca_variance": self.pca.explained_variance_ratio_.tolist() if self.pca else []
         }
 
 # Singleton instance

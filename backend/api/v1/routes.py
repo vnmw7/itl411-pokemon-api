@@ -121,4 +121,20 @@ def create_v1_router(limiter: Limiter) -> APIRouter:
 
         return StandardResponse(data=result)
 
+    # Feature 6: Cluster visualization for DBSCAN scatter plot
+    @router.get("/cluster-visualization", response_model=StandardResponse, tags=["Machine Learning"])
+    @limiter.limit("30/minute")
+    async def get_cluster_visualization(
+        request: Request,
+        recommender: RecommenderService = Depends(get_recommender_service)
+    ):
+        """Returns 2D PCA projection of all Pokemon for cluster visualization scatter plot."""
+        loop = asyncio.get_running_loop()
+        result = await loop.run_in_executor(None, recommender.get_cluster_visualization)
+
+        if "error" in result:
+            raise HTTPException(status_code=500, detail=result["error"])
+
+        return StandardResponse(data=result)
+
     return router

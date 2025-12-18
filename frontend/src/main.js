@@ -4,6 +4,8 @@ import { initSearchSection } from './sections/isaiah/search-bar.js';
 import { initPokemonGrid } from './sections/gerome/pokemon-grid.js';
 import { initPokemonOverview } from './sections/nicole/pokemon-overview.js';
 import { initPokemonStats } from './sections/kia/stats-evolution.js';
+import { initRecommendations } from './sections/ml/recommendations.js';
+import { initStatCharts } from './sections/ml/stat-charts.js';
 
 // 1. Set up the Layout HTML
 document.querySelector('#app').innerHTML = `
@@ -21,6 +23,8 @@ document.querySelector('#app').innerHTML = `
     <div class="sidebar-area">
       <div id="nicole-overview-container"></div>
       <div id="kia-stats-container"></div>
+      <div id="ml-recommendations-container"></div>
+      <div id="ml-charts-container"></div>
     </div>
   </div>
 `;
@@ -30,8 +34,12 @@ const searchEl   = document.getElementById('isaiah-search-container');
 const gridEl     = document.getElementById('gerome-grid-container');
 const overviewEl = document.getElementById('nicole-overview-container');
 const statsEl    = document.getElementById('kia-stats-container');
+const recommendationsEl = document.getElementById('ml-recommendations-container');
+const chartsEl   = document.getElementById('ml-charts-container');
 
 if (searchEl)   initSearchSection(searchEl);
 if (gridEl)     initPokemonGrid(gridEl);
 if (overviewEl) initPokemonOverview(overviewEl);
 if (statsEl)    initPokemonStats(statsEl);
+if (recommendationsEl) initRecommendations(recommendationsEl);
+if (chartsEl)   initStatCharts(chartsEl);

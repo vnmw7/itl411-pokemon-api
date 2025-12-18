@@ -44,6 +44,8 @@ export const CONFIG = {
 export const API_ENDPOINTS = {
   pokemon: `${API_BASE_URL}/pokemon`,
   pokemonSearch: `${API_BASE_URL}/pokemon/search`,
+  recommend: (pokemonName) => `${API_BASE_URL}/recommend/${encodeURIComponent(pokemonName)}`,
+  clusterVisualization: `${API_BASE_URL}/cluster-visualization`,
 };
 
 // Backward compatibility exports

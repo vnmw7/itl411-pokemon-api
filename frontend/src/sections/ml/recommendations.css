@@ -1,0 +1,185 @@
+/**
+ * System: ITL411 Pokemon API
+ * Module: ML Recommendations Styles
+ * File URL: frontend/src/sections/ml/recommendations.css
+ * Purpose: Styling for ML recommendations component
+ */
+
+.recommendations-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 2px solid #f6f8fc;
+}
+
+.recommendations-title {
+  text-align: center;
+  margin: 0 0 8px 0;
+  color: #2B2F42;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.recommendations-subtitle {
+  text-align: center;
+  margin: 0 0 16px 0;
+  color: #8F9396;
+  font-size: 0.75rem;
+}
+
+.recommendations-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 8px 4px 16px 4px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.recommendations-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.recommendations-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.recommendations-scroll::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.recommendations-scroll::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+.recommendation-card {
+  flex: 0 0 auto;
+  width: 120px;
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 16px;
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  scroll-snap-align: start;
+  border: 2px solid transparent;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.recommendation-card:focus {
+  outline: none;
+  border-color: #EA5D60;
+}
+
+.recommendation-card.selected {
+  border-color: #60A5FA;
+  background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+}
+
+.rec-image {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+
+.rec-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.rec-id {
+  font-size: 0.65rem;
+  color: #8F9396;
+  font-weight: 600;
+}
+
+.rec-name {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #2B2F42;
+  text-transform: capitalize;
+}
+
+.rec-types {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.rec-type-chip {
+  font-size: 0.6rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: white;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.recommendations-loading {
+  text-align: center;
+  padding: 24px;
+  color: #8F9396;
+}
+
+.recommendations-spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #EA5D60;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.recommendations-empty {
+  text-align: center;
+  padding: 24px;
+  color: #8F9396;
+  font-size: 0.85rem;
+}
+
+.recommendations-error {
+  text-align: center;
+  padding: 16px;
+  color: #d32f2f;
+  background: #ffebee;
+  border-radius: 8px;
+  margin: 8px 0;
+  font-size: 0.85rem;
+}
+
+.recommendations-unique {
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fef9c3 100%);
+  border-radius: 12px;
+  margin: 8px 0;
+}
+
+.recommendations-unique p {
+  margin: 0;
+  color: #92400e;
+  font-size: 0.9rem;
+}
+
+.recommendations-unique-sub {
+  margin-top: 4px !important;
+  font-size: 0.75rem !important;
+  color: #a16207 !important;
+}

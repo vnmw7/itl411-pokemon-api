@@ -1,0 +1,200 @@
+/**
+ * System: ITL411 Pokemon API
+ * Module: Cluster Scatter Plot Styles
+ * File URL: frontend/src/sections/ml/stat-charts.css
+ * Purpose: Styling for DBSCAN cluster visualization scatter plot
+ */
+
+.charts-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 2px solid #f6f8fc;
+}
+
+.charts-title {
+  text-align: center;
+  margin: 0 0 16px 0;
+  color: #2B2F42;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.charts-empty {
+  text-align: center;
+  padding: 24px;
+  color: #8F9396;
+  font-size: 0.85rem;
+}
+
+.chart-container {
+  margin-bottom: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 16px;
+  animation: chartFadeIn 0.4s ease-out;
+}
+
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Scatter plot specific styles */
+.scatter-wrapper {
+  height: 400px;
+  min-height: 350px;
+  max-height: 500px;
+}
+
+.scatter-hint {
+  text-align: center;
+  color: #8F9396;
+  font-size: 0.75rem;
+  margin: 8px 0 0 0;
+  font-style: italic;
+}
+
+/* Cluster info bar */
+.cluster-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  justify-content: center;
+  align-items: center;
+}
+
+.cluster-stat {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: #e8eef4;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  color: #2B2F42;
+  font-weight: 500;
+}
+
+.cluster-stat.pca-info {
+  background: transparent;
+  color: #8F9396;
+  font-weight: 400;
+}
+
+.selected-info {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: #FBBF24;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+.selected-info strong {
+  text-transform: capitalize;
+  margin-left: 4px;
+}
+
+/* Loading state */
+.scatter-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #8F9396;
+}
+
+.scatter-loading p {
+  margin: 16px 0 0 0;
+  font-size: 0.85rem;
+}
+
+.scatter-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e8eef4;
+  border-top-color: #60A5FA;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error state */
+.scatter-error {
+  text-align: center;
+  padding: 40px 20px;
+  color: #EA5D60;
+  background: #fef2f2;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.scatter-error p {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+/* Animation for chart appearance */
+@keyframes chartFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Canvas styling */
+.chart-wrapper canvas {
+  max-width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .charts-section {
+    margin-top: 16px;
+    padding-top: 16px;
+  }
+
+  .chart-container {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .scatter-wrapper {
+    height: 300px;
+    min-height: 280px;
+  }
+
+  .cluster-info {
+    gap: 8px;
+  }
+
+  .cluster-stat,
+  .selected-info {
+    padding: 4px 10px;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .scatter-wrapper {
+    height: 250px;
+    min-height: 220px;
+  }
+
+  .cluster-info {
+    flex-direction: column;
+    gap: 6px;
+  }
+}

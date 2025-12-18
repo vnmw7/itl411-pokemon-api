@@ -16,5 +16,14 @@ export const PokemonService = {
     if (!term) return this.getAll();
     const url = `${API_ENDPOINTS.pokemonSearch}?name=${encodeURIComponent(term)}`;
     return await apiClient(url);
+  },
+
+  async getRecommendations(pokemonName, num = 5) {
+    const url = `${API_ENDPOINTS.recommend(pokemonName)}?num=${num}`;
+    return await apiClient(url);
+  },
+
+  async getClusterVisualization() {
+    return await apiClient(API_ENDPOINTS.clusterVisualization);
   }
 };
