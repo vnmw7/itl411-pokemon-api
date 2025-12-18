@@ -54,6 +54,7 @@
 }
 
 .recommendation-card {
+  position: relative;
   flex: 0 0 auto;
   width: 120px;
   background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
@@ -64,6 +65,20 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   scroll-snap-align: start;
   border: 2px solid transparent;
+}
+
+.similarity-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: white;
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
 }
 
 .recommendation-card:hover {

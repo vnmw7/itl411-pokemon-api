@@ -10,6 +10,7 @@ import { PokemonService } from '../../services/pokemon-service.js';
 
 let recommendationsElement = null;
 let currentPokemon = null;
+let inputPokemonWithStats = null;
 let recommendations = [];
 
 const TYPE_COLORS = {
@@ -85,8 +86,14 @@ function renderRecommendations(recs) {
     const imageUrl = pokemon.image ||
       `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png`;
 
+    // Similarity badge from API response
+    const similarityBadge = pokemon.similarity_percent !== undefined
+      ? `<span class="similarity-badge">${Math.round(pokemon.similarity_percent)}% similar</span>`
+      : '';
+
     return `
       <div class="recommendation-card" data-index="${index}" tabindex="0" role="button" aria-label="Compare with ${pokemon.name}">
+        ${similarityBadge}
         <img src="${imageUrl}" alt="${pokemon.name}" class="rec-image" loading="lazy">
         <div class="rec-info">
           <span class="rec-id">#${String(pokemon.id).padStart(3, '0')}</span>
@@ -122,7 +129,11 @@ function renderRecommendations(recs) {
 
 function handleComparisonSelect(index) {
   const recommended = recommendations[index];
-  if (!recommended || !currentPokemon) return;
+  if (!recommended) return;
+
+  // Use inputPokemonWithStats (has full stats from API) for comparison
+  const selectedWithStats = inputPokemonWithStats || currentPokemon;
+  if (!selectedWithStats) return;
 
   // Highlight selected card
   const cards = recommendationsElement.querySelectorAll('.recommendation-card');
@@ -132,7 +143,7 @@ function handleComparisonSelect(index) {
 
   // Dispatch event for stat-charts to update comparison
   document.dispatchEvent(new CustomEvent('comparison-selected', {
-    detail: { selected: currentPokemon, recommended }
+    detail: { selected: selectedWithStats, recommended }
   }));
 }
 
@@ -160,6 +171,7 @@ async function fetchAndRenderRecommendations(pokemon) {
 
   const data = result.data;
   recommendations = data.recommendations || [];
+  inputPokemonWithStats = data.input_pokemon || null;
 
   // Check if Pokemon is unique (outlier in clustering)
   if (data.message && data.message.includes('unique')) {
@@ -174,9 +186,9 @@ async function fetchAndRenderRecommendations(pokemon) {
 
   renderRecommendations(recommendations);
 
-  // Dispatch event for charts
+  // Dispatch event for charts with full stats
   document.dispatchEvent(new CustomEvent('recommendations-loaded', {
-    detail: { input: currentPokemon, recommendations }
+    detail: { input: inputPokemonWithStats || currentPokemon, recommendations }
   }));
 }
 

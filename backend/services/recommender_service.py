@@ -115,7 +115,7 @@ class RecommenderService:
         return matching_rows.head(max_results)['name'].tolist()
 
     def get_recommendations(self, pokemon_name: str, num_recommendations=5):
-        """Finds Pokémon in the same cluster. This runs synchronously."""
+        """Finds Pokémon in the same cluster with stats and similarity scores."""
         if not self.initialized:
             return {"error": "Recommender not initialized."}
 
@@ -125,53 +125,108 @@ class RecommenderService:
         if pokemon_info.empty:
             return {"error": f"Pokémon '{pokemon_name}' not found in the dataset."}
 
-        cluster = pokemon_info.iloc[0]['cluster']
+        input_row = pokemon_info.iloc[0]
+        cluster = input_row['cluster']
+
+        # Build input pokemon object with stats
+        input_stats = {f: int(input_row[f]) for f in self.features}
+        input_offensive = int(input_row['attack'] + input_row['special-attack'])
+        input_defensive = int(input_row['defense'] + input_row['special-defense'])
+
+        input_pokemon_data = {
+            "id": int(input_row['id']),
+            "name": input_row['name'],
+            "stats": input_stats,
+            "offensive_power": input_offensive,
+            "defensive_power": input_defensive,
+            "cluster_id": int(cluster)
+        }
 
         if cluster == -1:
-            return {"message": f"'{pokemon_name}' is statistically unique (outlier). No similar Pokémon found.", "recommendations": []}
+            return {
+                "message": f"'{pokemon_name}' is statistically unique (outlier). No similar Pokémon found.",
+                "input_pokemon": input_pokemon_data,
+                "recommendations": []
+            }
 
         # Find others in the same cluster
-        recommendations = self.df[(self.df['cluster'] == cluster) & (self.df['name'].str.lower() != search_name)]
-        
-        if len(recommendations) > num_recommendations:
-            # Order by distance to the input Pokémon for more deterministic results
-            input_pokemon_features = self.df[self.df['name'].str.lower() == search_name][self.features].iloc[0]
-            recommendation_features = recommendations[self.features]
-            
-            # Calculate distances
-            distances = euclidean_distances(
-                [input_pokemon_features],
-                recommendation_features
-            )[0]
-            
-            # Add distances to dataframe and sort by distance
-            recommendations = recommendations.copy()
-            recommendations['distance'] = distances
-            recommendations = recommendations.sort_values('distance').head(num_recommendations)
-            recommendations = recommendations.drop('distance', axis=1)
+        recommendations_df = self.df[
+            (self.df['cluster'] == cluster) &
+            (self.df['name'].str.lower() != search_name)
+        ].copy()
 
-        recommended_names = recommendations['name'].tolist()
+        if recommendations_df.empty:
+            return {
+                "input_pokemon": input_pokemon_data,
+                "recommendations": []
+            }
+
+        # Calculate distances for all recommendations
+        input_features = input_row[self.features].values.reshape(1, -1)
+        rec_features = recommendations_df[self.features].values
+        distances = euclidean_distances(input_features, rec_features)[0]
+        recommendations_df['distance'] = distances
+
+        # Sort by distance and limit
+        recommendations_df = recommendations_df.sort_values('distance').head(num_recommendations)
+
+        # Calculate similarity percentage using exponential decay
+        # sigma scales the decay - smaller sigma = faster decay
+        max_distance = distances.max() if len(distances) > 0 else 1.0
+        sigma = max(max_distance / 2.0, 0.1)  # Avoid division by zero
+
+        recommendations_list = []
+        for _, row in recommendations_df.iterrows():
+            rec_stats = {f: int(row[f]) for f in self.features}
+            similarity = 100.0 * np.exp(-row['distance'] / sigma)
+
+            recommendations_list.append({
+                "id": int(row['id']),
+                "name": row['name'],
+                "stats": rec_stats,
+                "offensive_power": int(row['attack'] + row['special-attack']),
+                "defensive_power": int(row['defense'] + row['special-defense']),
+                "similarity_percent": round(similarity, 1),
+                "distance": round(float(row['distance']), 4)
+            })
 
         return {
-            "input_pokemon": pokemon_name,
-            "cluster_id": int(cluster),
-            "recommendations": recommended_names
+            "input_pokemon": input_pokemon_data,
+            "recommendations": recommendations_list
         }
 
     def get_cluster_visualization(self):
-        """Returns all Pokemon with 2D PCA coordinates and cluster labels for visualization."""
+        """Returns all Pokemon with meaningful axis coordinates for visualization."""
         if not self.initialized:
             return {"error": "Recommender not initialized."}
 
-        # Build lightweight response with only visualization-needed fields
+        # Calculate meaningful coordinates:
+        # X-axis: Offensive Power = attack + special-attack
+        # Y-axis: Defensive Power = defense + special-defense
+        offensive_raw = self.df['attack'] + self.df['special-attack']
+        defensive_raw = self.df['defense'] + self.df['special-defense']
+
+        # Get min/max for axis info
+        off_min, off_max = int(offensive_raw.min()), int(offensive_raw.max())
+        def_min, def_max = int(defensive_raw.min()), int(defensive_raw.max())
+
+        # Normalize to 0-100 scale for better visualization spread
+        offensive_normalized = ((offensive_raw - off_min) / (off_max - off_min)) * 100
+        defensive_normalized = ((defensive_raw - def_min) / (def_max - def_min)) * 100
+
+        # Build response with meaningful coordinates and stats
         points = []
-        for _, row in self.df.iterrows():
+        for idx, row in self.df.iterrows():
+            loc = self.df.index.get_loc(idx)
             points.append({
                 "id": int(row['id']),
                 "name": row['name'],
-                "x": float(row['pca_x']),
-                "y": float(row['pca_y']),
-                "cluster": int(row['cluster'])
+                "x": round(float(offensive_normalized.iloc[loc]), 2),
+                "y": round(float(defensive_normalized.iloc[loc]), 2),
+                "cluster": int(row['cluster']),
+                "stats": {f: int(row[f]) for f in self.features},
+                "offensive_power": int(offensive_raw.iloc[loc]),
+                "defensive_power": int(defensive_raw.iloc[loc])
             })
 
         # Compute cluster metadata
@@ -184,7 +239,12 @@ class RecommenderService:
                 "total_clusters": len([c for c in cluster_counts.keys() if c != -1]),
                 "outlier_count": cluster_counts.get(-1, 0)
             },
-            "pca_variance": self.pca.explained_variance_ratio_.tolist() if self.pca else []
+            "axis_info": {
+                "x_label": "Offensive Power (Atk + SpA)",
+                "y_label": "Defensive Power (Def + SpD)",
+                "x_range": [off_min, off_max],
+                "y_range": [def_min, def_max]
+            }
         }
 
 # Singleton instance

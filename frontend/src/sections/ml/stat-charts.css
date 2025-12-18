@@ -198,3 +198,76 @@
     gap: 6px;
   }
 }
+
+/* Comparison Chart Styles */
+.comparison-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 2px solid #f6f8fc;
+  animation: chartFadeIn 0.4s ease-out;
+}
+
+.comparison-title {
+  text-align: center;
+  margin: 0 0 12px 0;
+  color: #2B2F42;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.comparison-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.toggle-btn {
+  padding: 6px 16px;
+  border: 2px solid #e8eef4;
+  background: transparent;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #8F9396;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+  border-color: #60A5FA;
+  color: #60A5FA;
+}
+
+.toggle-btn.active {
+  background: #60A5FA;
+  border-color: #60A5FA;
+  color: white;
+}
+
+.comparison-wrapper {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 16px;
+  height: 300px;
+}
+
+.comparison-hint {
+  text-align: center;
+  color: #8F9396;
+  font-size: 0.75rem;
+  margin: 8px 0 0 0;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .comparison-wrapper {
+    height: 250px;
+    padding: 12px;
+  }
+
+  .toggle-btn {
+    padding: 5px 12px;
+    font-size: 0.7rem;
+  }
+}
