@@ -114,13 +114,6 @@ function renderLoading() {
   if (!statsElement) return;
 
   statsElement.innerHTML = `
-    <div class="task-instruction">
-      <strong>Kia's Task:</strong>
-      1. Listen for 'pokemon-selected' event.<br>
-      2. Fetch full details: <code>GET /api/v1/pokemon/{id}</code>.<br>
-      3. Render "Base Stats" and "Evolution Chain".
-    </div>
-
     <div role="status" aria-live="polite" style="text-align: center; padding: 20px; color: #666;">
       <div style="display: inline-block; width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #EA5D60; border-radius: 50%; animation: spin 1s linear infinite;"></div>
       <p style="margin-top: 10px;">Loading stats...</p>
@@ -135,13 +128,6 @@ function renderError(message) {
   if (!statsElement) return;
 
   statsElement.innerHTML = `
-    <div class="task-instruction">
-      <strong>Kia's Task:</strong>
-      1. Listen for 'pokemon-selected' event.<br>
-      2. Fetch full details: <code>GET /api/v1/pokemon/{id}</code>.<br>
-      3. Render "Base Stats" and "Evolution Chain".
-    </div>
-
     <div role="alert" aria-live="polite" style="text-align: center; padding: 20px; color: #d32f2f; background: #ffebee; border-radius: 8px; margin: 10px 0;">
       <p>⚠️ ${message}</p>
     </div>
@@ -476,15 +462,6 @@ async function fetchAndRenderStats(pokemon) {
 /* ---------- Public initializer ---------- */
 export function initPokemonStats(element) {
   statsElement = element;
-
-  statsElement.innerHTML = `
-    <div class="task-instruction">
-      <strong>Kia's Task:</strong>
-      1. Listen for 'pokemon-selected' event.<br>
-      2. Fetch full details: <code>GET /api/v1/pokemon/{id}</code>.<br>
-      3. Render "Base Stats" and "Evolution Chain".
-    </div>
-  `;
 
   document.addEventListener('pokemon-selected', (e) => {
     currentPokemon = e.detail;

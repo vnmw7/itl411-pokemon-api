@@ -9,12 +9,6 @@ import { DEBOUNCE_DELAY_MS } from '../../config.js';
 
 export function initSearchSection(element) {
   element.innerHTML = `
-    <div class="task-instruction">
-      <strong>Isaiah's Task:</strong>
-      1. Create an Input field for "Search".<br>
-      2. On user input, dispatch event: <code>new CustomEvent('pokemon-search', { detail: term })</code>
-    </div>
-
     <div class="search-wrapper" role="search" aria-label="Pokémon search" style="display: flex; gap: 10px;">
       <input type="text"
              id="search-input"

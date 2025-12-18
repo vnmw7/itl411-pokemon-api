@@ -80,6 +80,13 @@ export function initPokemonOverview(element) {
                 .join('')}
             </div>
           </section>
+
+          <div> Scroll down to see more details. </div>
+          <div class="scroll-indicator">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 5L12 19M12 19L19 12M12 19L5 12" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
         </div>
       </article>
     </div>
@@ -253,6 +260,25 @@ function injectPokemonOverviewStyles() {
 
       .pokemon-name {
         font-size: 2.2rem;
+      }
+    }
+
+    .scroll-indicator {
+      display: flex;
+      justify-content: center;
+      padding: 0.5rem;
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+      }
+      40% {
+        transform: translateY(-5px);
+      }
+      60% {
+        transform: translateY(-3px);
       }
     }
   `;
